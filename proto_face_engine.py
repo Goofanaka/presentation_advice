@@ -11,22 +11,24 @@ PRESENCE_THRESHOLD = 0.5
 EYE_INDICES_TO_LANDMARKS = [33, 7, 163, 144, 145, 153, 154, 155, 133, 246, 161, 160, 159, 158, 157, 173, 263, 249, 390, 373, 374, 380, 381, 382, 362, 466, 388, 387, 386, 385, 384, 398]
 model = load_model('models/eye_model.h5')
 IMG_SIZE = (34, 26)
-cnt = 0
-n = 0
-li_cnt = []
+eye_cnt = 0
+frame = 0
+eye = 0
+eye_list = []
 
 # 웹 캠 경우 초기값 설정
 face_mesh = mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
 # 캠 로드
-cap = cv2.VideoCapture('video.mp4')
+cap = cv2.VideoCapture('jua2.mp4')
 # cap = cv2.VideoCapture(0)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-fps = cap.get(cv2.CAP_PROP_FRAME_FPS)
-frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-# print(frame_count)
+fps = cap.get(cv2.CAP_PROP_FPS)  # 초당 프레임
+m_fps = cap.get(cv2.CAP_PROP_FPS) * 60  # 분당 프레임
+frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)  # 총 프레임
+print(m_fps)
 
 
 # 눈 자르기
@@ -65,14 +67,14 @@ def eye_pre(eye_img_l, eye_img_r):
     pred_l = model.predict(eye_input_l)
     pred_r = model.predict(eye_input_r)
 
-    # 시각화, 0.05보다 높으면(눈 떴을때) 0, 감으면 1 표시
-    state_l = 'O' if pred_l > 0.05 else '1'
-    state_r = 'O' if pred_r > 0.05 else '1'
+    # 시각화, 0.02보다 높으면(눈 떴을때) 0, 감으면 1 표시
+    state_l = '0' if pred_l > 0.02 else '1'
+    state_r = '0' if pred_r > 0.02 else '1'
 
     state_l = state_l % pred_l
     state_r = state_r % pred_r
 
-    return state_l, state_r
+    return int(state_l), int(state_r)
 
 
 # 눈 좌표값 ndarray 변환
@@ -106,13 +108,23 @@ def landmark_dict(results):
     return face_landmark
 
 
+
 # 캠 실행
 while cap.isOpened():
     ret, image = cap.read()
 
     if not ret:
       print("Ignoring empty camera frame.")
+      eye_list.append(int(eye_cnt / 2))
       break
+
+    frame += 1
+    # print(frame)
+    if frame == m_fps :
+        eye_list.append(int(eye_cnt/2))
+        eye_cnt = 0
+        frame = 0
+        # print(eye_list)
 
     # 얼굴 좌표값 받기
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -133,24 +145,30 @@ while cap.isOpened():
         eye_drawing(idx_to_coordinates)
         # 눈 좌표 np.array 변환
         eye_np = to_ndarray(idx_to_coordinates)
-        # 눈 부분 crop
+        # 눈 부분 crop, 주의! 오른쪽부터 나올 경우 안됨, 입장시 왼쪽으로 입장해주세요
         eye_img_l, eye_rect_l = crop_eye(gray, eye_points=eye_np[0:16])  # 왼쪽 눈
         eye_img_r, eye_rect_r = crop_eye(gray, eye_points=eye_np[16:32])  # 오른쪽 눈
 
         # 눈 깜빡임 예측 값 반환
         state_l, state_r = eye_pre(eye_img_l, eye_img_r)
 
-        # 눈 깜빡임 카운트
+        state = 1 if state_l == 1 or state_r == 1 > 0.05 else 0
 
+        # 눈 깜빡임 카운트
+        if eye != state:
+            eye = state
+            eye_cnt += 1
+        else :
+            eye = state
 
         # 눈 표시
         cv2.rectangle(eye_image, pt1=tuple(eye_rect_l[0:2]), pt2=tuple(eye_rect_l[2:4]), color=(255, 255, 255), thickness=2)
         cv2.rectangle(eye_image, pt1=tuple(eye_rect_r[0:2]), pt2=tuple(eye_rect_r[2:4]), color=(255, 255, 255), thickness=2)
 
         # 텍스트 넣기
-        cv2.putText(eye_image, state_l, tuple(eye_rect_l[0:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-        cv2.putText(eye_image, state_r, tuple(eye_rect_r[0:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-        # cv2.putText(eye_image, "BLINK: {}".format(cnt), (10, 130), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        cv2.putText(eye_image, str(state_l), tuple(eye_rect_l[0:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        cv2.putText(eye_image, str(state_r), tuple(eye_rect_r[0:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        cv2.putText(eye_image, "BLINK: {}".format(int(eye_cnt/2)), (10, 130), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
 
         # 확인
         cv2.imshow('l', eye_img_l)
@@ -158,7 +176,9 @@ while cap.isOpened():
     cv2.imshow('MediaPipe EyeMesh', eye_image)  # 눈 인식 표시
 
     if cv2.waitKey(1) == ord('q'):
+        eye_list.append(int(eye_cnt / 2))
         break
 
+print(eye_list)
 face_mesh.close()
 cap.release()
