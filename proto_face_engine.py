@@ -2,13 +2,19 @@ import cv2
 import mediapipe as mp
 import numpy as np
 from keras.models import load_model
+import plotly.graph_objects as go
 
 # 초기값 설정
 mp_drawing = mp.solutions.drawing_utils
 mp_face_mesh = mp.solutions.face_mesh
 VISIBILITY_THRESHOLD = 0.5
 PRESENCE_THRESHOLD = 0.5
-EYE_INDICES_TO_LANDMARKS = [33, 7, 163, 144, 145, 153, 154, 155, 133, 246, 161, 160, 159, 158, 157, 173, 263, 249, 390, 373, 374, 380, 381, 382, 362, 466, 388, 387, 386, 385, 384, 398]
+EYE_INDICES_TO_LANDMARKS = [
+    33, 7, 163, 144, 145, 153, 154, 155,
+    133, 246, 161, 160, 159, 158, 157, 173,
+    263, 249, 390, 373, 374, 380, 381, 382,
+    362, 466, 388, 387, 386, 385, 384, 398
+]
 model = load_model('models/eye_model.h5')
 IMG_SIZE = (34, 26)
 eye_cnt = 0
@@ -21,7 +27,7 @@ face_mesh = mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_con
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
 # 캠 로드
-cap = cv2.VideoCapture('jua2.mp4')
+cap = cv2.VideoCapture(0)
 # cap = cv2.VideoCapture(0)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -30,6 +36,61 @@ m_fps = cap.get(cv2.CAP_PROP_FPS) * 60  # 분당 프레임
 frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)  # 총 프레임
 print(m_fps)
 
+#눈 깜박임 시각화
+def test_Visualization (eye_list):
+
+    eye_len =list(range(len(eye_list)+1))
+    print(eye_len)
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=eye_len[1:],
+        y=eye_list,
+        name="분당 깜박임 횟수 데이터"
+
+    ))
+
+
+    fig.add_annotation(
+            x=max(range(len(eye_list)),key=eye_list.__getitem__)+1,
+            y=max(eye_list),
+            xref="x",
+            yref="y",
+            text="가장 눈을 많이 감은 횟수",
+            showarrow=True,
+            font=dict(
+                family="Courier New, monospace",
+                size=16,
+                color="#ffffff"
+                ),
+            align="center",
+            arrowhead=2,
+            arrowsize=1,
+            arrowwidth=2,
+            arrowcolor="#636363",
+            ax=20,
+            ay=-30,
+            bordercolor="#c7c7c7",
+            borderwidth=2,
+            borderpad=4,
+            bgcolor="#ff7f0e",
+            opacity=0.8
+            )
+
+    fig.update_layout(template="plotly_white",
+                      showlegend=True,
+                      title="눈깜박임 횟수를 바탕으로한 긴장도 측정",
+                      xaxis_title="시간(분)",
+                      yaxis_title="깜박임 횟수",
+                      legend_title="눈 깜박임 횟수",
+                      font=dict(
+                          family="Courier New, monospace",
+                          size=18,
+                          color="RebeccaPurple"
+                      )
+                      )
+    fig.show()
+    pass
 
 # 눈 자르기
 def crop_eye(img, eye_points):
@@ -120,7 +181,7 @@ while cap.isOpened():
 
     frame += 1
     # print(frame)
-    if frame == m_fps :
+    if frame == m_fps:
         eye_list.append(int(eye_cnt/2))
         eye_cnt = 0
         frame = 0
@@ -138,7 +199,7 @@ while cap.isOpened():
     # 눈 인식 표시만 할 이미지 복사
     eye_image = image.copy()
 
-    if results.multi_face_landmarks :
+    if results.multi_face_landmarks:
         # 얼굴 랜드마크 dict 저장
         idx_to_coordinates = landmark_dict(results)
         # 눈 부분 마킹
@@ -158,7 +219,7 @@ while cap.isOpened():
         if eye != state:
             eye = state
             eye_cnt += 1
-        else :
+        else:
             eye = state
 
         # 눈 표시
@@ -179,6 +240,8 @@ while cap.isOpened():
         eye_list.append(int(eye_cnt / 2))
         break
 
-print(eye_list)
+#print(eye_list)
 face_mesh.close()
 cap.release()
+#눈 깜박임 시각화
+test_Visualization(eye_list)
