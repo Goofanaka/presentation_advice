@@ -7,9 +7,9 @@ https://github.com/CMU-Perceptual-Computing-Lab/openpose에 들어가서 zip 파
 
 ## 필요 환경 설정
 1. opencv gpu 환경 설정
-  - visual studio
-  - OpenCV
-  - OpenCV-contrib
-  - CMake
-  - nvidia CUDA
-  - CUdnn
+    - visual studio
+    - OpenCV
+    - OpenCV-contrib
+    - CMake
+    - nvidia CUDA
+    - nvidia cuDNN
