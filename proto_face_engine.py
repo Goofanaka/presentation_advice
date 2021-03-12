@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 from keras.models import load_model
 import plotly.graph_objects as go
-
+import os
 
 class eye_check:
     def __init__(self):
@@ -88,7 +88,11 @@ class eye_check:
         return face_landmark
 
     #눈 깜박임 횟수 시각화
+    # pip install -U kaleido (시각화 파일 저장시 인스톨필요)
     def eye_blink_Visualization (self, eye_list):
+        #시각화 파일 저장 폴더 설정,  import os
+        if not os.path.exists("images"):
+            os.mkdir("images")
         eye_len =list(range(len(eye_list)+1))
 
         fig = go.Figure()
@@ -137,7 +141,10 @@ class eye_check:
                               color="RebeccaPurple"
                           )
                           )
-        fig.show()
+        #PNG, JPEG, and WebP 가능
+        fig.write_image("images/fig1.png")
+        #fig.show()
+
 
 if __name__ == '__main__':
     eye_cnt = 0
@@ -145,8 +152,8 @@ if __name__ == '__main__':
     eye = 0
     eye_list = []
 
-    cap = cv2.VideoCapture('video2.mp4')
-    # cap = cv2.VideoCapture(0)
+    #cap = cv2.VideoCapture('video2.mp4')
+    cap = cv2.VideoCapture(0)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)  # 초당 프레임
