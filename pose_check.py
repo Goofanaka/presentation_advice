@@ -3,6 +3,7 @@ import cv2
 import os
 import pandas as pd
 import re
+import matplotlib.pyplot as plt
 
 class Pose_Check:
 
@@ -178,11 +179,46 @@ class Pose_Check:
 
             # print(name, type(name))
 
+    def Visualization(self, all_count):
+        # 흐트러진 자세 비율 구하기
+        sh_count = round(((all_count['sh_count'].sum() / len(all_count['sh_count'])) * 100), 1)
+        pel_count = round(((all_count['pel_count'].sum() / len(all_count['pel_count'])) * 100), 1)
+        eye_count = round(((all_count['eye_count'].sum() / len(all_count['eye_count'])) * 100), 1)
+        pose_count = round(((all_count['pose_count'].sum() / len(all_count['pose_count'])) * 100), 1)
+
+        # None 비율 구하기
+        sh_none_count = round(((all_count['sh_count'].isnull().sum() / len(all_count['sh_count'])) * 100), 1)
+        pel_none_count = round(((all_count['pel_count'].isnull().sum() / len(all_count['pel_count'])) * 100), 1)
+        eye_none_count = round(((all_count['eye_count'].isnull().sum() / len(all_count['eye_count'])) * 100), 1)
+        pose_none_count = round(((all_count['pose_count'].isnull().sum() / len(all_count['pose_count'])) * 100), 1)
+
+        # 그래프 그리기기
+       autopct = '%.1f%%'
+        colors = ['lightgray', 'darkgray', '#8fd9b6']
+        explode = [0, 0, 0.1]
+
+        plt.rc('font', family='Malgun Gothic')
+        plt.figure(figsize=(12, 8))
+        plt.subplot(221), plt.pie([100 - (sh_count + sh_none_count), sh_none_count, sh_count],
+                                  labels=['전체(100%)', 'None', '어깨 흐트러짐'], autopct=autopct, explode=explode,
+                                  colors=colors, startangle=90), plt.title("어깨 흐트러짐 비율", fontsize=10)
+        plt.subplot(222), plt.pie([100 - (pel_count + pel_none_count), pel_none_count, pel_count],
+                                  labels=['전체(100%)', 'None', '골반 흐트러짐'], autopct=autopct, explode=explode,
+                                  colors=colors, startangle=90), plt.title("골반 흐트러짐 비율", fontsize=10)
+        plt.subplot(223), plt.pie([100 - (eye_count + eye_none_count), eye_none_count, eye_count],
+                                  labels=['전체(100%)', 'None', '얼굴 흐트러짐'], autopct=autopct, explode=explode,
+                                  colors=colors, startangle=90), plt.title("얼굴 흐트러짐 비율", fontsize=10)
+        plt.subplot(224), plt.pie([100 - (pose_count + pose_none_count), pose_none_count, pose_count],
+                                  labels=['전체(100%)', 'None', '자세 흐트러짐'], autopct=autopct, explode=explode,
+                                  colors=colors, startangle=90), plt.title("자세 흐트러짐 비율", fontsize=10)
+        plt.show()
+
+
 if __name__ == '__main__':
     # 인스턴스 선언
     man = Pose_Check(
-        'D:/second_project/code_folders/openpose-master/models/pose/coco/pose_deploy_linevec.prototxt',
-        'D:/second_project/code_folders/openpose-master/models/pose/coco/pose_iter_440000.caffemodel',
+        'C:\\Users\\user\\PycharmProjects\\pythonProject\\openpose-master\\models\\pose\\coco\\pose_deploy_linevec.prototxt',
+        'C:\\Users\\user\\PycharmProjects\\pythonProject\\openpose-master\\models\\pose\\coco\\pose_iter_440000.caffemodel',
     )
 
     #dnn gpu 가속 설정
@@ -192,10 +228,10 @@ if __name__ == '__main__':
     #초당 한 프레임만 가져와서 저장하기 위한 코드
     n = 0
     idx = 0
-    video = cv2.VideoCapture('D:/project/PPT 대회 에너자이저 PPT 대회 발표 영상_1080p.mp4')
+    video = cv2.VideoCapture('C:\\Users\\user\\Downloads\\present.mp4')
     name = 'frame'
-    frame_path = 'D:/project/frames'
-    converted_path = 'D:/project/new_img'
+    frame_path = 'C:\\Users\\user\\PycharmProjects\\pythonProject\\frames'
+    converted_path = 'C:\\Users\\user\\PycharmProjects\\pythonProject\\new_img'
 
 
 
@@ -259,11 +295,25 @@ if __name__ == '__main__':
 
         print(i, eye)
 
-    print(eye_count)
+    # 시각화를 위한 데이터프레임 변환
+    sh_count = pd.Series(sh_count, name='sh_count', dtype='float32')
+    pel_count = pd.Series(pel_count, name='pel_count', dtype='float32')
+    eye_count = pd.Series(eye_count, name='eye_count', dtype='float32')
+    all_count = pd.concat([sh_count, pel_count, eye_count], axis=1)
 
-    sh_count = pd.Series(sh_count, dtype='float32')
-    pel_count = pd.Series(pel_count, dtype= 'float32')
-    eye_count = pd.Series(eye_count, dtype= 'float32')
+    pose_count = []
+
+    for i in range(len(all_count)):
+        if 1 in all_count.iloc[[i]].values:
+            pose_count.append(1.0)
+        elif 1 not in all_count.iloc[[i]].values and 0 in all_count.iloc[[i]].values:
+            pose_count.append(0.0)
+        elif all_count.iloc[[i]].all(None):
+            pose_count.append(None)
+
+    pose_count = pd.Series(pose_count, name='pose_count', dtype='float32')
+    all_count = pd.concat([all_count, pose_count], axis=1)
+
 
     print('sh_count.series \n', sh_count)
     print('pel_count.series \n', pel_count)
