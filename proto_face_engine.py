@@ -2,7 +2,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 from keras.models import load_model
-import plotly.graph_objects as go
+# import plotly.graph_objects as go
 import os
 
 class eye_check:
@@ -43,37 +43,55 @@ class eye_check:
         return np.array([x for i, x in dict.items() if i in self.EYE_INDICES_TO_LANDMARKS])
 
     # 눈 깜박임 모델 적용, 예측
-    def eye_pre(self, eye_img_l, eye_img_r):
+    # def eye_pre(self, eye_img_l, eye_img_r):
+    #     # 이미지 변경
+    #     eye_img_l = cv2.resize(eye_img_l, dsize=self.IMG_SIZE)
+    #     eye_img_r = cv2.resize(eye_img_r, dsize=self.IMG_SIZE)
+    #     # eye_img_r = cv2.flip(eye_img_r, flipCode=1)
+    #
+    #     # 전처리
+    #     eye_input_l = eye_img_l.copy().reshape((1, self.IMG_SIZE[1], self.IMG_SIZE[0], 1)).astype(np.float32) / 255.
+    #     eye_input_r = eye_img_r.copy().reshape((1, self.IMG_SIZE[1], self.IMG_SIZE[0], 1)).astype(np.float32) / 255.
+    #
+    #     # model 적용 -> 예측
+    #     pred_l = self.model.predict(eye_input_l)
+    #     pred_r = self.model.predict(eye_input_r)
+    #
+    #     # 시각화, 0.02보다 높으면(눈 떴을때) 0, 감으면 1 표시
+    #     state_l = '0' if pred_l > 0.02 else '1'
+    #     state_r = '0' if pred_r > 0.02 else '1'
+    #
+    #     state_l = state_l % pred_l
+    #     state_r = state_r % pred_r
+    #
+    #     return int(state_l), int(state_r)
+
+    def eye_pre(self, eye_img_l):
         # 이미지 변경
         eye_img_l = cv2.resize(eye_img_l, dsize=self.IMG_SIZE)
-        eye_img_r = cv2.resize(eye_img_r, dsize=self.IMG_SIZE)
         # eye_img_r = cv2.flip(eye_img_r, flipCode=1)
 
         # 전처리
         eye_input_l = eye_img_l.copy().reshape((1, self.IMG_SIZE[1], self.IMG_SIZE[0], 1)).astype(np.float32) / 255.
-        eye_input_r = eye_img_r.copy().reshape((1, self.IMG_SIZE[1], self.IMG_SIZE[0], 1)).astype(np.float32) / 255.
 
         # model 적용 -> 예측
         pred_l = self.model.predict(eye_input_l)
-        pred_r = self.model.predict(eye_input_r)
 
         # 시각화, 0.02보다 높으면(눈 떴을때) 0, 감으면 1 표시
         state_l = '0' if pred_l > 0.02 else '1'
-        state_r = '0' if pred_r > 0.02 else '1'
 
         state_l = state_l % pred_l
-        state_r = state_r % pred_r
 
-        return int(state_l), int(state_r)
+        return int(state_l)
 
     # 눈 좌표값 추출 및 마킹
-    def eye_drawing(self, landmark_dict):
+    def eye_drawing(self, eye_image,landmark_dict):
         for i in self.EYE_INDICES_TO_LANDMARKS:  # 눈 좌표값만 그리기
             # print(landmark_dict.get(i))
             cv2.circle(eye_image, landmark_dict.get(i), 3, (0, 0, 255), -1)
 
     # 얼굴 랜드마크 dict 저장
-    def landmark_dict(self, results):
+    def landmark_dict(self, results, width, height):
         face_landmark = {}
         for face_landmarks in results.multi_face_landmarks:
             for idx, landmark in enumerate(face_landmarks.landmark):
@@ -89,6 +107,7 @@ class eye_check:
 
     #눈 깜박임 횟수 시각화
     # pip install -U kaleido (시각화 파일 저장시 인스톨필요)
+    '''
     def eye_blink_Visualization (self, eye_list):
         #시각화 파일 저장 폴더 설정,  import os
         if not os.path.exists("images"):
@@ -144,8 +163,9 @@ class eye_check:
         #PNG, JPEG, and WebP 가능
         fig.write_image("images/fig1.png")
         #fig.show()
-
-
+'''
+'''
+#example code for usage
 if __name__ == '__main__':
     eye_cnt = 0
     frame = 0
@@ -239,3 +259,4 @@ if __name__ == '__main__':
     check.eye_blink_Visualization(eye_list)
     face_mesh.close()
     cap.release()
+'''

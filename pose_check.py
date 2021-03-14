@@ -3,7 +3,7 @@ import cv2
 import os
 import pandas as pd
 import re
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 class Pose_Check:
 
@@ -178,7 +178,7 @@ class Pose_Check:
             # print(f'{digit} :',((points[0][0]-points[1][0])**2 + (points[0][1]-points[1][1])**2)**0.5)
 
             # print(name, type(name))
-
+'''
     def Visualization(self, all_count):
         # 흐트러진 자세 비율 구하기
         sh_count = round(((all_count['sh_count'].sum() / len(all_count['sh_count'])) * 100), 1)
@@ -212,8 +212,10 @@ class Pose_Check:
                                   labels=['전체(100%)', 'None', '자세 흐트러짐'], autopct=autopct, explode=explode,
                                   colors=colors, startangle=90), plt.title("자세 흐트러짐 비율", fontsize=10)
         plt.show()
+'''
 
-
+'''
+#example code for usage
 if __name__ == '__main__':
     # 인스턴스 선언
     man = Pose_Check(
@@ -321,5 +323,5 @@ if __name__ == '__main__':
     print('shoulder_rightness \n', sh_count.sum(), sh_count.isnull().sum())
     print('pelvis_rightness \n', pel_count.sum(),pel_count.isnull().sum())
     print('eye_rightness \n', eye_count.sum(),eye_count.isnull().sum())
-
+'''
 
