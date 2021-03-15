@@ -97,7 +97,7 @@ class Eye_check:
         return face_landmark
 
     #눈 깜박임 횟수 시각화
-    def eye_blink_Visualization(eye_list):
+    def eye_blink_Visualization(self, eye_list):
         # 시각화 파일 저장 폴더 설정,  import os
         if not os.path.exists("images"):
             os.mkdir("images")
