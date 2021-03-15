@@ -192,8 +192,8 @@ class Pose_Check:
         eye_none_count = round(((all_count['eye_count'].isnull().sum() / len(all_count['eye_count'])) * 100), 1)
         pose_none_count = round(((all_count['pose_count'].isnull().sum() / len(all_count['pose_count'])) * 100), 1)
 
-        # 그래프 그리기기
-       autopct = '%.1f%%'
+        # 그래프 그리기
+        autopct = '%.1f%%'
         colors = ['lightgray', 'darkgray', '#8fd9b6']
         explode = [0, 0, 0.1]
 
@@ -211,8 +211,7 @@ class Pose_Check:
         plt.subplot(224), plt.pie([100 - (pose_count + pose_none_count), pose_none_count, pose_count],
                                   labels=['전체(100%)', 'None', '자세 흐트러짐'], autopct=autopct, explode=explode,
                                   colors=colors, startangle=90), plt.title("자세 흐트러짐 비율", fontsize=10)
-        plt.show()
-
+        plt.savefig('pose_check.png', dpi=300, bbox_inches='tight')
 
 if __name__ == '__main__':
     # 인스턴스 선언
@@ -228,7 +227,7 @@ if __name__ == '__main__':
     #초당 한 프레임만 가져와서 저장하기 위한 코드
     n = 0
     idx = 0
-    video = cv2.VideoCapture('C:\\Users\\user\\Downloads\\present.mp4')
+    video = cv2.VideoCapture('C:\\Users\\user\\Downloads\\present2.mp4')
     name = 'frame'
     frame_path = 'C:\\Users\\user\\PycharmProjects\\pythonProject\\frames'
     converted_path = 'C:\\Users\\user\\PycharmProjects\\pythonProject\\new_img'
@@ -283,11 +282,12 @@ if __name__ == '__main__':
         sh_count.append(shoulder)
         eye_count.append(eye)
         # pelvis =man.isVertical((points[8], points[9]), (points[11], points[12]))
-        if man.isVertical((points[8], points[9]), (points[11], points[12])) == 1 or man.isHorizontal(points[8], points[11]) == 1:
-            pelvis = 1
-            pel_count.append(pelvis)
-        elif man.isVertical((points[8], points[9]), (points[11], points[12])) == None or man.isHorizontal(points[8], points[11]) == None:
+
+        if man.isVertical((points[8], points[9]), (points[11], points[12])) == None or man.isHorizontal(points[8], points[11]) == None:
             pelvis = None
+            pel_count.append(pelvis)
+        elif man.isVertical((points[8], points[9]), (points[11], points[12])) == 1 or man.isHorizontal(points[8], points[11]) == 1:
+            pelvis = 1
             pel_count.append(pelvis)
         else:
             pelvis = 0
@@ -314,12 +314,4 @@ if __name__ == '__main__':
     pose_count = pd.Series(pose_count, name='pose_count', dtype='float32')
     all_count = pd.concat([all_count, pose_count], axis=1)
 
-
-    print('sh_count.series \n', sh_count)
-    print('pel_count.series \n', pel_count)
-    print('eye_count.series \n', eye_count)
-    print('shoulder_rightness \n', sh_count.sum(), sh_count.isnull().sum())
-    print('pelvis_rightness \n', pel_count.sum(),pel_count.isnull().sum())
-    print('eye_rightness \n', eye_count.sum(),eye_count.isnull().sum())
-
-
+    man.Visualization(all_count)
