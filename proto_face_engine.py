@@ -97,44 +97,49 @@ class Eye_check:
         return face_landmark
 
     #눈 깜박임 횟수 시각화
-    def eye_blink_Visualization (self, eye_list):
+    def eye_blink_Visualization(eye_list):
         # 시각화 파일 저장 폴더 설정,  import os
         if not os.path.exists("images"):
             os.mkdir("images")
 
-        eye_len =list(range(len(eye_list)+1))
+        eye_len = list(range(len(eye_list) + 1))
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=eye_len[1:],
             y=eye_list,
             name="분당 깜박임 횟수 데이터"
-        ))
+        )
+        )
+
+        fig.add_hrect(y0=10, y1=20, line_width=0, fillcolor="red", opacity=0.1)
+
         fig.add_annotation(
-                x=max(range(len(eye_list)),key=eye_list.__getitem__)+1,
-                y=max(eye_list),
-                xref="x",
-                yref="y",
-                text="가장 눈을 많이 감은 횟수",
-                showarrow=True,
-                font=dict(
-                    family="Courier New, monospace",
-                    size=16,
-                    color="#ffffff"
-                    ),
-                align="center",
-                arrowhead=2,
-                arrowsize=1,
-                arrowwidth=2,
-                arrowcolor="#636363",
-                ax=20,
-                ay=-30,
-                bordercolor="#c7c7c7",
-                borderwidth=2,
-                borderpad=4,
-                bgcolor="#ff7f0e",
-                opacity=0.8
-                )
+            x=max(range(len(eye_list)), key=eye_list.__getitem__) + 1,
+            y=max(eye_list),
+            xref="x",
+            yref="y",
+            text="가장 눈을 많이 감은 횟수",
+            showarrow=True,
+            font=dict(
+                family="Courier New, monospace",
+                size=16,
+                color="#ffffff"
+            ),
+            align="center",
+            arrowhead=2,
+            arrowsize=1,
+            arrowwidth=2,
+            arrowcolor="#636363",
+            ax=20,
+            ay=-30,
+            bordercolor="#c7c7c7",
+            borderwidth=2,
+            borderpad=4,
+            bgcolor="#ff7f0e",
+            opacity=0.8
+        )
+
         fig.update_layout(template="plotly_white",
                           showlegend=True,
                           title="눈깜박임 횟수를 바탕으로한 긴장도 측정",
@@ -145,10 +150,12 @@ class Eye_check:
                               family="Courier New, monospace",
                               size=18,
                               color="RebeccaPurple"
-                          ))
-        # PNG, JPEG, and WebP 가능, pip install -U kaleido (시각화 파일 저장시 인스톨필요)
+                          )
+                          )
+
+        # PNG, JPEG, and WebP 가능
         fig.write_image("images/fig1.png")
-        # fig.show()
+        #fig.show()
 
     # 얼굴 좌표 변화 거리 계산
     def face_euclidean(self, dict, part=1):
