@@ -15,7 +15,7 @@ class Pose_Check:
         #기초 설정 cv2.dnn 에 모델을 입힙니다.
         self.net = cv2.dnn.readNetFromCaffe(self.protoFile, self.weightsFile)
 
-    # 영상 필요 파일을 저장할 디렉토리르 만들어준다.
+    # 영상 필요 파일을 저장할 디렉토리를 만들어준다.
     def set_dir(self, path):
         try:
             os.mkdir(path)
@@ -181,34 +181,32 @@ class Pose_Check:
 
     def Visualization(self, all_count):
         # 흐트러진 자세 비율 구하기
-        sh_count = round(((all_count['sh_count'].sum() / len(all_count['sh_count'])) * 100), 1)
-        pel_count = round(((all_count['pel_count'].sum() / len(all_count['pel_count'])) * 100), 1)
-        eye_count = round(((all_count['eye_count'].sum() / len(all_count['eye_count'])) * 100), 1)
-        pose_count = round(((all_count['pose_count'].sum() / len(all_count['pose_count'])) * 100), 1)
+        sh_count = all_count['sh_count'].sum()
+        pel_count = all_count['pel_count'].sum()
+        eye_count = all_count['eye_count'].sum()
+        pose_count = all_count['pose_count'].sum()
 
-        # None 비율 구하기
-        sh_none_count = round(((all_count['sh_count'].isnull().sum() / len(all_count['sh_count'])) * 100), 1)
-        pel_none_count = round(((all_count['pel_count'].isnull().sum() / len(all_count['pel_count'])) * 100), 1)
-        eye_none_count = round(((all_count['eye_count'].isnull().sum() / len(all_count['eye_count'])) * 100), 1)
-        pose_none_count = round(((all_count['pose_count'].isnull().sum() / len(all_count['pose_count'])) * 100), 1)
+        sh_none_count = all_count['sh_count'].isnull().sum()
+        pel_none_count = all_count['pel_count'].isnull().sum()
+        eye_none_count = all_count['eye_count'].isnull().sum()
+        pose_none_count = all_count['pose_count'].isnull().sum()
 
-        # 그래프 그리기
         autopct = '%.1f%%'
         colors = ['lightgray', 'darkgray', '#8fd9b6']
         explode = [0, 0, 0.1]
 
         plt.rc('font', family='Malgun Gothic')
         plt.figure(figsize=(12, 8))
-        plt.subplot(221), plt.pie([100 - (sh_count + sh_none_count), sh_none_count, sh_count],
+        plt.subplot(221), plt.pie([len(all_count) - (sh_count + sh_none_count), sh_none_count, sh_count],
                                   labels=['전체(100%)', 'None', '어깨 흐트러짐'], autopct=autopct, explode=explode,
                                   colors=colors, startangle=90), plt.title("어깨 흐트러짐 비율", fontsize=10)
-        plt.subplot(222), plt.pie([100 - (pel_count + pel_none_count), pel_none_count, pel_count],
+        plt.subplot(222), plt.pie([len(all_count) - (pel_count + pel_none_count), pel_none_count, pel_count],
                                   labels=['전체(100%)', 'None', '골반 흐트러짐'], autopct=autopct, explode=explode,
                                   colors=colors, startangle=90), plt.title("골반 흐트러짐 비율", fontsize=10)
-        plt.subplot(223), plt.pie([100 - (eye_count + eye_none_count), eye_none_count, eye_count],
+        plt.subplot(223), plt.pie([len(all_count) - (eye_count + eye_none_count), eye_none_count, eye_count],
                                   labels=['전체(100%)', 'None', '얼굴 흐트러짐'], autopct=autopct, explode=explode,
                                   colors=colors, startangle=90), plt.title("얼굴 흐트러짐 비율", fontsize=10)
-        plt.subplot(224), plt.pie([100 - (pose_count + pose_none_count), pose_none_count, pose_count],
+        plt.subplot(224), plt.pie([len(all_count) - (pose_count + pose_none_count), pose_none_count, pose_count],
                                   labels=['전체(100%)', 'None', '자세 흐트러짐'], autopct=autopct, explode=explode,
                                   colors=colors, startangle=90), plt.title("자세 흐트러짐 비율", fontsize=10)
         plt.savefig('pose_check.png', dpi=300, bbox_inches='tight')
@@ -227,7 +225,7 @@ if __name__ == '__main__':
     #초당 한 프레임만 가져와서 저장하기 위한 코드
     n = 0
     idx = 0
-    video = cv2.VideoCapture('C:\\Users\\user\\Downloads\\present2.mp4')
+    video = cv2.VideoCapture('C:\\Users\\user\\Downloads\\present_test.mp4')
     name = 'frame'
     frame_path = 'C:\\Users\\user\\PycharmProjects\\pythonProject\\frames'
     converted_path = 'C:\\Users\\user\\PycharmProjects\\pythonProject\\new_img'
