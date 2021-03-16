@@ -108,7 +108,8 @@ class Eye_check:
         fig.add_trace(go.Scatter(
             x=eye_len[1:],
             y=eye_list,
-            name="분당 깜박임 횟수 데이터"
+            name="분당 깜박임 횟수 데이터",
+            line = dict(color='Black', width=2)
         )
         )
 
@@ -124,7 +125,7 @@ class Eye_check:
             font=dict(
                 family="Courier New, monospace",
                 size=16,
-                color="#ffffff"
+                color="#000000"
             ),
             align="center",
             arrowhead=2,
@@ -133,10 +134,10 @@ class Eye_check:
             arrowcolor="#636363",
             ax=20,
             ay=-30,
-            bordercolor="#c7c7c7",
+            bordercolor="#FFFFFF",
             borderwidth=2,
             borderpad=4,
-            bgcolor="#ff7f0e",
+            bgcolor="#FFFFFF",
             opacity=0.8
         )
 
@@ -149,7 +150,7 @@ class Eye_check:
                           font=dict(
                               family="Courier New, monospace",
                               size=18,
-                              color="RebeccaPurple"
+                              color="Black"
                           )
                           )
 
