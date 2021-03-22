@@ -246,6 +246,30 @@ if __name__ == '__main__':
             # 눈 좌표 변화율
             e_dict = check.face_euclidean(idx_to_coordinates, part=2)
             print(e_dict)
+            
+            df = pd.DataFrame(e_dict)
+            e_std = df.std()
+            e_var = df.var()
+            e_count = df.count()
+
+            eye_std = pd.Series(e_std, name='표준 편차', dtype='int')
+            eye_var = pd.Series(e_var, name='분산', dtype='int')
+            eye_count = pd.Series(e_count, name='모수', dtype='int')
+            all_count = pd.concat([eye_std, eye_var, eye_count], axis=1)
+
+            all = all_count.T
+
+            df2 = pd.DataFrame(m_dict)
+            m_std = df.std()
+            m_var = df.var()
+            m_count = df.count()
+
+            mouth_std = pd.Series(m_std, name='표준 편차', dtype='int')
+            mouth_std_var = pd.Series(m_var, name='분산', dtype='int')
+            mouth_std_count = pd.Series(m_count, name='모수', dtype='int')
+            all_count2 = pd.concat([mouth_std, mouth_std_var, mouth_std_count], axis=1)
+
+            all2 = all_count2.T
 
             # 눈 표시
             cv2.rectangle(eye_image, pt1=tuple(eye_rect_l[0:2]), pt2=tuple(eye_rect_l[2:4]), color=(255, 255, 255), thickness=2)
@@ -267,3 +291,7 @@ if __name__ == '__main__':
     face_mesh.close()
     cap.release()
     cv2.destroyAllWindows()
+    print("눈 변화율:")
+    print(all)
+    print("입 변화율")
+    print(all2)
