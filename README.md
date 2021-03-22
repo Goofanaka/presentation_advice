@@ -24,6 +24,7 @@ ___
 - OpenCV GPU 환경 설정
 - pre-trained model
    https://github.com/CMU-Perceptual-Computing-Lab/openpose openpose-master/models/models 파일에 있는 get models.bat 설치
+- Mediapipe 설치
 
 ___
 
