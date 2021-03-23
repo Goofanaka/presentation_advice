@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import os
 from scipy.spatial import distance
 
+
 class Eye_check:
     def __init__(self):
         self.VISIBILITY_THRESHOLD = 0.5
@@ -19,15 +20,6 @@ class Eye_check:
         self.model = load_model('models/eye_model.h5')
         self.IMG_SIZE = (34, 26)
         self.mp_drawing = mp.solutions.drawing_utils
-        self.Landmark_mouth = [61, 37, 0, 267, 291, 405, 17, 181]
-        self.m_dict = {}
-        self.e_dict = {}
-
-        for i in range(len(self.Landmark_mouth)):
-            self.m_dict[i] = []
-
-        for i in range(len(self.Landmark_eye)):
-            self.e_dict[i] = []
 
     # 눈 자르기
     def crop_eye(self, img, eye_points):
@@ -96,6 +88,25 @@ class Eye_check:
                     face_landmark[idx] = landmark_px
         return face_landmark
 
+    # 표정 변화율
+    def face_change(self,dict):
+        w_line = int(distance.euclidean(dict[227], dict[447]))
+        # h_line = int(distance.euclidean(dict[10], dict[152]))
+
+        mouth = int(distance.euclidean(dict[61], dict[291]))
+        res_mouth = int((mouth / w_line) * 100)
+
+        clown = int(distance.euclidean(dict[50], dict[280]))
+        res_clown = int((clown / w_line) * 100)
+
+        brow = int(distance.euclidean(dict[107], dict[336]))
+        res_brow = int((brow / w_line) * 100)
+
+        Nasolabial_Folds = int(distance.euclidean(dict[205], dict[425]))
+        Nasolabial_Folds_res = int((Nasolabial_Folds / w_line) * 100)
+
+        return res_mouth, res_clown, res_brow, Nasolabial_Folds_res
+
     #눈 깜박임 횟수 시각화
     def eye_blink_Visualization(self, eye_list):
         # 시각화 파일 저장 폴더 설정,  import os
@@ -106,81 +117,66 @@ class Eye_check:
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=eye_len[1:],
-            y=eye_list,
-            name="분당 깜박임 횟수 데이터",
-            line = dict(color='Black', width=2)
-        )
-        )
+                        x = eye_len[1:],
+                        y = eye_list,
+                        name="분당 깜박임 횟수 데이터",
+                        line=dict(color='Black', width=2) ))
 
-        fig.add_hrect(y0=10, y1=20, line_width=0, fillcolor="red", opacity=0.1)
-
+        fig.add_hrect(y0=10, y1=20, line_width=0, fillcolor="gray", opacity=0.1)
         fig.add_annotation(
-            x=max(range(len(eye_list)), key=eye_list.__getitem__) + 1,
-            y=max(eye_list),
-            xref="x",
-            yref="y",
-            text="가장 눈을 많이 감은 횟수",
-            showarrow=True,
-            font=dict(
-                family="Courier New, monospace",
-                size=16,
-                color="#000000"
-            ),
-            align="center",
-            arrowhead=2,
-            arrowsize=1,
-            arrowwidth=2,
-            arrowcolor="#636363",
-            ax=20,
-            ay=-30,
-            bordercolor="#FFFFFF",
-            borderwidth=2,
-            borderpad=4,
-            bgcolor="#FFFFFF",
-            opacity=0.8
-        )
+                        x=max(range(len(eye_list)), key=eye_list.__getitem__) + 1,
+                        y=max(eye_list),
+                        xref="x",
+                        yref="y",
+                        text="가장 눈을 많이 감은 횟수",
+                        showarrow=True,
+                        font=dict(
+                        family="Courier New, monospace",
+                        size=16,
+                        color="#000000" ),
+                    align="center",
+                    arrowhead=2,
+                    arrowsize=1,
+                    arrowwidth=2,
+                    arrowcolor="#636363",
+                    ax=20,
+                    ay=-30,
+                    bordercolor="#FFFFFF",
+                    borderwidth=2,
+                    borderpad=4,
+                    bgcolor="#FFFFFF",
+                    opacity=0.8 )
 
         fig.update_layout(template="plotly_white",
-                          showlegend=True,
-                          title="눈깜박임 횟수를 바탕으로한 긴장도 측정",
-                          xaxis_title="시간(분)",
-                          yaxis_title="깜박임 횟수",
-                          legend_title="눈 깜박임 횟수",
-                          font=dict(
-                              family="Courier New, monospace",
-                              size=18,
-                              color="Black"
-                          )
-                          )
+                    showlegend=True,
+                    title="눈깜박임 횟수를 바탕으로한 긴장도 측정",
+                    xaxis_title="시간(분)",
+                    yaxis_title="깜박임 횟수",
+                    legend_title="눈 깜박임 횟수",
+                    font=dict(
+                            family="Courier New, monospace",
+                            size=18,
+                            color="Black" ) )
 
         # PNG, JPEG, and WebP 가능
         fig.write_image("images/fig1.png")
-        #fig.show()
+        # fig.show()
 
-    # 얼굴 좌표 변화 거리 계산
-    def face_euclidean(self, dict, part=1):
-        # 1이면 입
-        if part == 1 :
-            for i, k in zip(self.Landmark_mouth, self.m_dict.keys()) :
-                res = int(distance.euclidean(dict[5], dict[i]))
-                self.m_dict[k].append(res)
-        # 2면 눈
-        elif part == 2 :
-            for i, k in zip(self.Landmark_eye, self.e_dict.keys()) :
-                res = int(distance.euclidean(dict[5], dict[i]))
-                self.e_dict[k].append(res)
 
-        return self.m_dict if part == 1 else self.e_dict
+
 
 if __name__ == '__main__':
     eye_cnt = 0
     frame = 0
     eye = 0
     eye_list = []
+    Nasolabial_Folds_list = []
+    brow_list = []
+    clown_list = []
+    mouth_list = []
 
-    # cap = cv2.VideoCapture('video2.mp4')
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture('video2.mp4')
+    # cap = cv2.VideoCapture(0)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     m_fps = cap.get(cv2.CAP_PROP_FPS) * 60  # 분당 프레임
@@ -197,7 +193,7 @@ if __name__ == '__main__':
             break
 
         frame += 1
-        if frame % m_fps == 0 :
+        if frame % m_fps == 0:
             eye_list.append(int(eye_cnt / 2))
             eye_cnt = 0
             frame = 0
@@ -214,7 +210,7 @@ if __name__ == '__main__':
         # 눈 인식 표시만 할 이미지 복사
         eye_image = image.copy()
 
-        if results.multi_face_landmarks :
+        if results.multi_face_landmarks:
             # 얼굴 랜드마크 dict 저장
             idx_to_coordinates = check.landmark_dict(results)
 
@@ -237,39 +233,16 @@ if __name__ == '__main__':
             if eye != state:
                 eye = state
                 eye_cnt += 1
-            else :
+            else:
                 eye = state
 
-            # 입 좌표 변화율
-            m_dict = check.face_euclidean(idx_to_coordinates, part=1)
-            print(m_dict)
-            # 눈 좌표 변화율
-            e_dict = check.face_euclidean(idx_to_coordinates, part=2)
-            print(e_dict)
-            
-            df = pd.DataFrame(e_dict)
-            e_std = df.std()
-            e_var = df.var()
-            e_count = df.count()
+            # 표정 변화율
+            res_mouth, res_clown, res_brow, Nasolabial_Folds_res = check.face_change(idx_to_coordinates)
 
-            eye_std = pd.Series(e_std, name='표준 편차', dtype='int')
-            eye_var = pd.Series(e_var, name='분산', dtype='int')
-            eye_count = pd.Series(e_count, name='모수', dtype='int')
-            all_count = pd.concat([eye_std, eye_var, eye_count], axis=1)
-
-            all = all_count.T
-
-            df2 = pd.DataFrame(m_dict)
-            m_std = df.std()
-            m_var = df.var()
-            m_count = df.count()
-
-            mouth_std = pd.Series(m_std, name='표준 편차', dtype='int')
-            mouth_std_var = pd.Series(m_var, name='분산', dtype='int')
-            mouth_std_count = pd.Series(m_count, name='모수', dtype='int')
-            all_count2 = pd.concat([mouth_std, mouth_std_var, mouth_std_count], axis=1)
-
-            all2 = all_count2.T
+            mouth_list.append(res_mouth)
+            clown_list.append(res_clown)
+            brow_list.append(res_brow)
+            Nasolabial_Folds_list.append(Nasolabial_Folds_res)
 
             # 눈 표시
             cv2.rectangle(eye_image, pt1=tuple(eye_rect_l[0:2]), pt2=tuple(eye_rect_l[2:4]), color=(255, 255, 255), thickness=2)
@@ -278,12 +251,11 @@ if __name__ == '__main__':
             # 텍스트 넣기
             cv2.putText(eye_image, str(state_l), tuple(eye_rect_l[0:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
             cv2.putText(eye_image, str(state_r), tuple(eye_rect_r[0:2]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            cv2.putText(eye_image, "BLINK: {}".format(int(eye_cnt/2)), (30, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
+            cv2.putText(eye_image, "BLINK: {}".format(int(eye_cnt / 2)), (30, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
 
-        # writer.write(image)
         cv2.imshow('MediaPipe EyeMesh', eye_image)  # 눈 인식 표시
 
-        if cv2.waitKey(1) == ord('q') :
+        if cv2.waitKey(1) == ord('q'):
             eye_list.append(int(eye_cnt / 2))
             break
 
@@ -291,7 +263,3 @@ if __name__ == '__main__':
     face_mesh.close()
     cap.release()
     cv2.destroyAllWindows()
-    print("눈 변화율:")
-    print(all)
-    print("입 변화율")
-    print(all2)
