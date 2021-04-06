@@ -15,7 +15,7 @@ ___
 
 # 3. Features
 - pose_check.py : 자세분석 엔진 및 시각화 
-- proto_face_engine.py : 눈 깜박임 및 표정변화율 분석엔진 및 시각화
+- face_engine.py : 눈 깜박임 및 표정변화율 분석엔진 및 시각화
 - models(eye_model.h5) : 눈 깜박임 감지 모델
 
 ___
