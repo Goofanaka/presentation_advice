@@ -1,0 +1,12 @@
+1. pip install nltk
+2. pip install konlpy
+3.
+3-1. whl 파일 다운로드
+https://www.lfd.uci.edu/~gohlke/pythonlibs/#jpype 
+에서
+JPype1-1.2.0-cp38-cp38-win_amd64.whl  
+-> cp 뒤에는 python 버전(3.8이면 38), window 64비트면 amd64 환경에 맞게 다운로드
+3-2.
+다운 후 현재 디렉토리로 옮긴 후 
+pip install JPype1-1.2.0-cp38-cp38-win_amd64.whl
+
