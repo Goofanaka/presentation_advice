@@ -44,29 +44,41 @@ class Eye_check:
     def to_ndarray(self, dict):
         return np.array([x for i, x in dict.items() if i in self.Landmark_eye])
 
-    # 눈 깜박임 모델 적용, 예측
-    def eye_pre(self, eye_img_l, eye_img_r):
+    # [리팩토링]오른 눈 박임 모델 적용,쪽 예측 by.은찬
+    def eye_preR(self, eye_img_r):
         # 이미지 변경
-        eye_img_l = cv2.resize(eye_img_l, dsize=self.IMG_SIZE)
         eye_img_r = cv2.resize(eye_img_r, dsize=self.IMG_SIZE)
-        # eye_img_r = cv2.flip(eye_img_r, flipCode=1)
 
         # 전처리
-        eye_input_l = eye_img_l.reshape((1, self.IMG_SIZE[1], self.IMG_SIZE[0], 1)).astype(np.float32) / 255.
         eye_input_r = eye_img_r.reshape((1, self.IMG_SIZE[1], self.IMG_SIZE[0], 1)).astype(np.float32) / 255.
 
         # model 적용 -> 예측
-        pred_l = self.model.predict(eye_input_l)
         pred_r = self.model.predict(eye_input_r)
 
         # 시각화, 0.02보다 높으면(눈 떴을때) 0, 감으면 1 표시
-        state_l = '0' if pred_l > 0.02 else '1'
         state_r = '0' if pred_r > 0.02 else '1'
 
-        state_l = state_l % pred_l
         state_r = state_r % pred_r
 
-        return int(state_l), int(state_r)
+        return int(state_r)
+
+    # [리팩토링]왼쪽 눈 박임 모델 적용, 예측 by.은찬
+    def eye_preL(self, eye_img_l):
+        # 이미지 변경
+        eye_img_l = cv2.resize(eye_img_l, dsize=self.IMG_SIZE)
+
+        # 전처리
+        eye_input_l = eye_img_l.reshape((1, self.IMG_SIZE[1], self.IMG_SIZE[0], 1)).astype(np.float32) / 255.
+
+        # model 적용 -> 예측
+        pred_l = self.model.predict(eye_input_l)
+
+        # 시각화, 0.02보다 높으면(눈 떴을때) 0, 감으면 1 표시
+        state_l = '0' if pred_l > 0.02 else '1'
+
+        state_l = state_l % pred_l
+
+        return int(state_l)
 
     # 눈 좌표값 추출 및 마킹
     def eye_drawing(self, landmark_dict):
@@ -275,8 +287,8 @@ if __name__ == '__main__':
             eye_img_r, eye_rect_r = check.crop_eye(gray, eye_points=eye_np[16:32])  # 오른쪽 눈
 
             # 눈 깜빡임 예측 값 반환
-            state_l, state_r = check.eye_pre(eye_img_l, eye_img_r)
-            state_l, state_r = check.eye_pre(eye_img_l, eye_img_r)
+            state_r = check.eye_preR(eye_img_r)
+            state_l = check.eye_preL(eye_img_l)
             state = 1 if state_l == 1 or state_r == 1 > 0.05 else 0
 
             # 눈 깜빡임 카운트
